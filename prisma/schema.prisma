@@ -9,7 +9,7 @@ datasource db {
 
 model User {
   id           String        @id @default(uuid()) @db.Uuid
-  name         String
+  username     String
   email        String        @unique
   password     String
   categories   Category[]
@@ -20,11 +20,11 @@ model Category {
   id           String        @id @default(uuid()) @db.Uuid
   user         User          @relation(fields: [userId], references: [id])
   userId       String        @db.Uuid
-  name         String
+  categoryname String
   type         CategoryType
   transactions Transaction[]
 
-  @@unique([name, userId], name: "name_userId")
+  @@unique([categoryname, userId], name: "category_userId")
 }
 
 model Transaction {

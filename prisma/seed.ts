@@ -4,16 +4,18 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  // 1️⃣ Buat default user
   const user = await prisma.user.upsert({
     where: { email: 'lia@wmail.com' },
     update: {},
     create: {
-      name: 'Lia',
+      username: 'Lia',
       email: 'lia@wmail.com',
       password: await bcrypt.hash('apabagus', 10),
     },
   });
 
+  // 2️⃣ Default income categories
   const incomeCategories = [
     'Gaji',
     'Bonus',
@@ -23,16 +25,18 @@ async function main() {
   ];
   for (const name of incomeCategories) {
     await prisma.category.upsert({
-      where: { name_userId: { name, userId: user.id } },
+      // Gunakan field unik baru: categoryname + userId
+      where: { category_userId: { categoryname: name, userId: user.id } },
       update: {},
       create: {
-        name,
+        categoryname: name,
         type: 'income',
         userId: user.id,
       },
     });
   }
 
+  // 3️⃣ Default expense categories
   const expenseCategories = [
     'Makan',
     'Transportasi',
@@ -43,10 +47,10 @@ async function main() {
   ];
   for (const name of expenseCategories) {
     await prisma.category.upsert({
-      where: { name_userId: { name, userId: user.id } },
+      where: { category_userId: { categoryname: name, userId: user.id } },
       update: {},
       create: {
-        name,
+        categoryname: name,
         type: 'expense',
         userId: user.id,
       },
