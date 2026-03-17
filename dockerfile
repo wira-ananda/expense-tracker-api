@@ -13,4 +13,4 @@ RUN npm run build
 
 EXPOSE 2000
 
-CMD ["node", "dist/src/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]

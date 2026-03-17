@@ -22,7 +22,11 @@ services:
     depends_on:
       - db
     env_file:
-      - .env
+      - .env.prod
 
 volumes:
   db_data:
+
+# Jalankan prod : docker compose -f docker-compose.prod.yml up -d --build
+# utk pke masuk ke docker : docker exec -it container-name sh
+
