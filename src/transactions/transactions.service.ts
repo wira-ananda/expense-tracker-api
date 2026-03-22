@@ -1,4 +1,3 @@
-// src/transactions/transactions.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClient, Transaction } from '@prisma/client';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
@@ -37,16 +36,59 @@ export class TransactionsService {
     return prisma.transaction.findMany({
       where: { userId },
       include: { category: true },
+      orderBy: { transactionDate: 'desc' },
     });
+  }
+
+  async getTransactionsByMonth(userId: string, year: number, month: number) {
+    const startDate = new Date(year, month - 1, 1, 0, 0, 0, 0);
+    const endDate = new Date(year, month, 1, 0, 0, 0, 0);
+
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        userId,
+        transactionDate: {
+          gte: startDate,
+          lt: endDate,
+        },
+      },
+      include: {
+        category: true,
+      },
+      orderBy: {
+        transactionDate: 'desc',
+      },
+    });
+
+    const income = transactions
+      .filter((item) => item.type === 'income')
+      .reduce((sum, item) => sum + Number(item.amount), 0);
+
+    const expense = transactions
+      .filter((item) => item.type === 'expense')
+      .reduce((sum, item) => sum + Number(item.amount), 0);
+
+    return {
+      year,
+      month,
+      income,
+      expense,
+      balance: income - expense,
+      transactions,
+    };
   }
 
   async getTransactionById(userId: string, id: string): Promise<Transaction> {
     const transaction = await prisma.transaction.findFirst({
       where: { id, userId },
+      include: { category: true },
     });
+
     if (!transaction) throw new NotFoundException('Transaction not found');
+
     return transaction;
   }
+
   async updateTransaction(
     userId: string,
     id: string,
@@ -81,6 +123,9 @@ export class TransactionsService {
           ? new Date(data.transactionDate)
           : undefined,
       },
+      include: {
+        category: true,
+      },
     });
   }
 
@@ -88,6 +133,7 @@ export class TransactionsService {
     const transaction = await prisma.transaction.findFirst({
       where: { id, userId },
     });
+
     if (!transaction) throw new NotFoundException('Transaction not found');
 
     return prisma.transaction.delete({

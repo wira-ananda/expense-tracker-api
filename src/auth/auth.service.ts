@@ -15,20 +15,6 @@ export class AuthService {
     return jwt.sign({ id: userId }, secret, { expiresIn: '7d' });
   }
 
-  async register(username: string, email: string, password: string) {
-    const userExists = await prisma.user.findUnique({ where: { email } });
-    if (userExists) throw new UnauthorizedException('Email sudah terdaftar');
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await prisma.user.create({
-      data: { username, email, password: hashedPassword },
-    });
-
-    const token = this.generateToken(user.id);
-
-    return { ...user, token };
-  }
-
   async login(usernameOrEmail: string, password: string) {
     const user = await prisma.user.findFirst({
       where: {
@@ -39,6 +25,20 @@ export class AuthService {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) throw new UnauthorizedException('Password salah');
+
+    const token = this.generateToken(user.id);
+
+    return { ...user, token };
+  }
+
+  async register(username: string, email: string, password: string) {
+    const userExists = await prisma.user.findUnique({ where: { email } });
+    if (userExists) throw new UnauthorizedException('Email sudah terdaftar');
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await prisma.user.create({
+      data: { username, email, password: hashedPassword },
+    });
 
     const token = this.generateToken(user.id);
 

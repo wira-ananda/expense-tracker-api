@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -15,11 +16,14 @@ import {
   ApiParam,
   ApiResponse,
   ApiTags,
+  ApiQuery,
+  ApiOkResponse,
 } from '@nestjs/swagger';
 import { TransactionsService } from './transactions.service';
 import { AuthMiddleware } from '../auth/auth.middleware';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
+import { GetTransactionsByMonthDto } from './dto/get-transactions-by-month.dto';
 import { CurrentUser } from '../common/decorator/current-user.decorator';
 import type { User } from 'src/users/interface/users.interface';
 
@@ -49,6 +53,60 @@ export class TransactionsController {
   })
   async findAll(@CurrentUser() user: User) {
     return this.transactionsService.getTransactions(user.id);
+  }
+
+  @Get('history/by-month')
+  @ApiOperation({ summary: 'Ambil history transaksi berdasarkan bulan' })
+  @ApiQuery({
+    name: 'year',
+    example: 2026,
+    required: true,
+    description: 'Tahun transaksi',
+  })
+  @ApiQuery({
+    name: 'month',
+    example: 3,
+    required: true,
+    description: 'Bulan transaksi (1-12)',
+  })
+  @ApiOkResponse({
+    description: 'History transaksi per bulan berhasil diambil',
+    schema: {
+      example: {
+        year: 2026,
+        month: 3,
+        income: 5000000,
+        expense: 1750000,
+        balance: 3250000,
+        transactions: [
+          {
+            id: 'uuid-1',
+            userId: 'uuid-user',
+            categoryId: 'uuid-category',
+            type: 'expense',
+            amount: '250000',
+            note: 'Belanja mingguan',
+            transactionDate: '2026-03-20T10:00:00.000Z',
+            category: {
+              id: 'uuid-category',
+              userId: 'uuid-user',
+              categoryname: 'Belanja',
+              type: 'expense',
+            },
+          },
+        ],
+      },
+    },
+  })
+  async getTransactionsByMonth(
+    @CurrentUser() user: User,
+    @Query() query: GetTransactionsByMonthDto,
+  ) {
+    return this.transactionsService.getTransactionsByMonth(
+      user.id,
+      query.year,
+      query.month,
+    );
   }
 
   @Get(':id')
