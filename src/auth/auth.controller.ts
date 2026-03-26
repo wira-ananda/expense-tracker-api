@@ -1,8 +1,16 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { AuthMiddleware } from './auth.middleware';
+import { CurrentUser } from '../common/decorator/current-user.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -47,5 +55,35 @@ export class AuthController {
   async login(@Body() body: LoginDto) {
     const { usernameOrEmail, password } = body;
     return this.authService.login(usernameOrEmail, password);
+  }
+
+  @Get('me')
+  @UseGuards(AuthMiddleware)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Ambil data user yang sedang login' })
+  @ApiResponse({
+    status: 200,
+    description: 'Berhasil mengambil data user',
+    schema: {
+      example: {
+        id: '0f7c31d9-4d29-4cf4-93e3-6c7e64a5f8f0',
+        username: 'Lia',
+        email: 'lia@wmail.com',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Token tidak valid',
+        error: 'Unauthorized',
+      },
+    },
+  })
+  async me(@CurrentUser() user: { id: string }) {
+    return this.authService.me(user.id);
   }
 }

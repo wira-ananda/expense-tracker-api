@@ -9,7 +9,7 @@ import {
 import { AuthMiddleware } from '../auth/auth.middleware';
 import { SummaryService } from './summary.service';
 import { CurrentUser } from '../common/decorator/current-user.decorator';
-import type { User } from 'src/users/interface/users.interface';
+import type { User } from 'src/auth/interface/users.interface';
 
 @ApiTags('Summary')
 @ApiBearerAuth()

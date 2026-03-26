@@ -25,7 +25,7 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { GetTransactionsByMonthDto } from './dto/get-transactions-by-month.dto';
 import { CurrentUser } from '../common/decorator/current-user.decorator';
-import type { User } from 'src/users/interface/users.interface';
+import type { User } from 'src/auth/interface/users.interface';
 
 @ApiTags('Transactions')
 @ApiBearerAuth()

@@ -1,89 +1,85 @@
 import {
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { PrismaService } from 'prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-import { buildDefaultCategories } from './utils/build.default-categories';
-
-const prisma = new PrismaClient();
 
 @Injectable()
 export class AuthService {
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  generateToken(userId: string) {
+  private generateToken(userId: string) {
     const secret = this.configService.get<string>('JWT_SECRET');
-    if (!secret) throw new Error('JWT_SECRET belum di-set');
 
-    return jwt.sign({ id: userId }, secret, { expiresIn: '7d' });
-  }
+    if (!secret) {
+      throw new InternalServerErrorException('JWT_SECRET belum di-set');
+    }
 
-  async login(usernameOrEmail: string, password: string) {
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [{ email: usernameOrEmail }, { username: usernameOrEmail }],
-      },
+    return jwt.sign({ id: userId }, secret, {
+      expiresIn: '7d',
     });
-
-    if (!user) {
-      throw new UnauthorizedException('Akun tidak ditemukan');
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      throw new UnauthorizedException('Password salah');
-    }
-
-    const token = this.generateToken(user.id);
-
-    return {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      createdAt: user.createdAt,
-      token,
-    };
   }
 
   async register(username: string, email: string, password: string) {
-    const userExists = await prisma.user.findFirst({
-      where: {
-        OR: [{ email }, { username }],
-      },
-    });
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-    if (userExists?.email === email) {
-      throw new ConflictException('Email sudah terdaftar');
-    }
-
-    if (userExists?.username === username) {
-      throw new ConflictException('Username sudah digunakan');
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await prisma.$transaction(async (tx) => {
-      const newUser = await tx.user.create({
+      const user = await this.prisma.user.create({
         data: {
-          username,
-          email,
+          username: username.trim(),
+          email: email.trim().toLowerCase(),
           password: hashedPassword,
         },
       });
 
-      const defaultCategories = buildDefaultCategories(newUser.id);
+      const token = this.generateToken(user.id);
 
-      await tx.category.createMany({
-        data: defaultCategories,
-        skipDuplicates: true,
-      });
+      return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        token,
+      };
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Email sudah terdaftar');
+      }
 
-      return newUser;
+      console.error(error);
+      throw new InternalServerErrorException('Gagal registrasi');
+    }
+  }
+
+  async login(usernameOrEmail: string, password: string) {
+    const cleanedInput = usernameOrEmail.trim();
+
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ email: cleanedInput.toLowerCase() }, { username: cleanedInput }],
+      },
     });
+
+    if (!user) {
+      throw new UnauthorizedException('Username/email atau password salah');
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatch) {
+      throw new UnauthorizedException('Username/email atau password salah');
+    }
 
     const token = this.generateToken(user.id);
 
@@ -91,8 +87,24 @@ export class AuthService {
       id: user.id,
       username: user.username,
       email: user.email,
-      createdAt: user.createdAt,
       token,
     };
+  }
+
+  async me(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User tidak ditemukan');
+    }
+
+    return user;
   }
 }

@@ -22,7 +22,9 @@ export class TransactionsService {
         type: category.type,
         amount: data.amount,
         note: data.note,
-        transactionDate: data.transactionDate || new Date(),
+        transactionDate: data.transactionDate
+          ? new Date(data.transactionDate)
+          : new Date(),
         user: { connect: { id: userId } },
         category: { connect: { id: data.categoryId } },
       },

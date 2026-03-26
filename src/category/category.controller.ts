@@ -8,7 +8,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthMiddleware } from 'src/auth/auth.middleware';
 import { CurrentUser } from 'src/common/decorator/current-user.decorator';
-import type { User } from 'src/users/interface/users.interface';
+import type { User } from 'src/auth/interface/users.interface';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 

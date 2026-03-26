@@ -7,9 +7,15 @@ import {
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 
+type JwtPayload = {
+  id: string;
+  iat?: number;
+  exp?: number;
+};
+
 @Injectable()
 export class AuthMiddleware implements CanActivate {
-  constructor(private configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {}
 
   canActivate(context: ExecutionContext): boolean {
     const req = context.switchToHttp().getRequest();
@@ -21,11 +27,22 @@ export class AuthMiddleware implements CanActivate {
 
     const token = authHeader.split(' ')[1];
     const secret = this.configService.get<string>('JWT_SECRET');
-    if (!secret) throw new UnauthorizedException('JWT_SECRET belum di-set');
+
+    if (!secret) {
+      throw new UnauthorizedException('JWT_SECRET belum di-set');
+    }
 
     try {
-      const decoded = jwt.verify(token, secret) as { id: string };
-      req.user = decoded;
+      const decoded = jwt.verify(token, secret) as JwtPayload;
+
+      if (!decoded?.id) {
+        throw new UnauthorizedException('Token tidak valid');
+      }
+
+      req.user = {
+        id: decoded.id,
+      };
+
       return true;
     } catch {
       throw new UnauthorizedException('Token tidak valid');
