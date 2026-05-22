@@ -1,14 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 
-const prisma = new PrismaClient();
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class TransactionsService {
+  constructor(private readonly prisma: PrismaService) {}
   async createTransaction(userId: string, data: CreateTransactionDto) {
-    const category = await prisma.category.findFirst({
+    const category = await this.prisma.category.findFirst({
       where: {
         id: data.categoryId,
         userId,
@@ -19,7 +20,7 @@ export class TransactionsService {
       throw new NotFoundException('Category not found');
     }
 
-    return prisma.transaction.create({
+    return this.prisma.transaction.create({
       data: {
         type: category.type,
         amount: data.amount,
@@ -45,7 +46,7 @@ export class TransactionsService {
   }
 
   async getTransactions(userId: string) {
-    return prisma.transaction.findMany({
+    return this.prisma.transaction.findMany({
       where: {
         userId,
       },
@@ -62,7 +63,7 @@ export class TransactionsService {
     const startDate = new Date(year, month - 1, 1, 0, 0, 0, 0);
     const endDate = new Date(year, month, 1, 0, 0, 0, 0);
 
-    const transactions = await prisma.transaction.findMany({
+    const transactions = await this.prisma.transaction.findMany({
       where: {
         userId,
         transactionDate: {
@@ -97,7 +98,7 @@ export class TransactionsService {
   }
 
   async getTransactionById(userId: string, id: string) {
-    const transaction = await prisma.transaction.findFirst({
+    const transaction = await this.prisma.transaction.findFirst({
       where: {
         id,
         userId,
@@ -119,7 +120,7 @@ export class TransactionsService {
     id: string,
     data: UpdateTransactionDto,
   ) {
-    const transaction = await prisma.transaction.findFirst({
+    const transaction = await this.prisma.transaction.findFirst({
       where: {
         id,
         userId,
@@ -133,7 +134,7 @@ export class TransactionsService {
     let nextType = transaction.type;
 
     if (data.categoryId) {
-      const category = await prisma.category.findFirst({
+      const category = await this.prisma.category.findFirst({
         where: {
           id: data.categoryId,
           userId,
@@ -147,7 +148,7 @@ export class TransactionsService {
       nextType = category.type;
     }
 
-    return prisma.transaction.update({
+    return this.prisma.transaction.update({
       where: {
         id,
       },
@@ -165,7 +166,7 @@ export class TransactionsService {
   }
 
   async deleteTransaction(userId: string, id: string) {
-    const transaction = await prisma.transaction.findFirst({
+    const transaction = await this.prisma.transaction.findFirst({
       where: {
         id,
         userId,
@@ -176,7 +177,7 @@ export class TransactionsService {
       throw new NotFoundException('Transaction not found');
     }
 
-    return prisma.transaction.delete({
+    return this.prisma.transaction.delete({
       where: {
         id,
       },

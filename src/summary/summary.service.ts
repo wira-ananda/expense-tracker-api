@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class SummaryService {
+  constructor(private readonly prisma: PrismaService) {}
+
   async getSummary(userId: string, month?: string) {
     const where: {
       userId: string;
@@ -27,7 +27,7 @@ export class SummaryService {
       };
     }
 
-    const incomeAggregate = await prisma.transaction.aggregate({
+    const incomeAggregate = await this.prisma.transaction.aggregate({
       _sum: {
         amount: true,
       },
@@ -37,7 +37,7 @@ export class SummaryService {
       },
     });
 
-    const expenseAggregate = await prisma.transaction.aggregate({
+    const expenseAggregate = await this.prisma.transaction.aggregate({
       _sum: {
         amount: true,
       },
