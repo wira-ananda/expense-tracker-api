@@ -6,7 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { SummaryModule } from './summary/summary.module';
 import { CategoryModule } from './category/category.module';
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { PrismaModule } from './prisma/prisma.module';
+
 
 @Module({
   imports: [

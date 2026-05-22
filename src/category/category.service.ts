@@ -4,8 +4,9 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { PrismaService } from 'src/prisma/prisma.service'; // Pastikan path ini benar
+
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CategoryService {
