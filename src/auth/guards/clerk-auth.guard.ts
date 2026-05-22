@@ -26,18 +26,9 @@ export class ClerkAuthGuard implements CanActivate {
       throw new UnauthorizedException('CLERK_SECRET_KEY belum di-set');
     }
 
-    const authorizedParties = (
-      this.configService.get<string>('CLERK_AUTHORIZED_PARTIES') || ''
-    )
-      .split(',')
-      .map((party) => party.trim())
-      .filter(Boolean);
-
     try {
       const verifiedToken = await verifyToken(token, {
         secretKey: clerkSecretKey,
-        authorizedParties:
-          authorizedParties.length > 0 ? authorizedParties : undefined,
       });
 
       if (!verifiedToken?.sub) {
@@ -49,7 +40,11 @@ export class ClerkAuthGuard implements CanActivate {
       };
 
       return true;
-    } catch {
+    } catch (error) {
+      console.error('Clerk token verification failed:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+
       throw new UnauthorizedException('Token Clerk tidak valid');
     }
   }
