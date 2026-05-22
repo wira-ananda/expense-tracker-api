@@ -6,15 +6,15 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthMiddleware } from '../auth/auth.middleware';
 import { SummaryService } from './summary.service';
 import { CurrentUser } from '../common/decorator/current-user.decorator';
 import type { User } from 'src/auth/interface/users.interface';
+import { ClerkAuthGuard } from 'src/auth/guards/clerk-auth.guard';
 
 @ApiTags('Summary')
 @ApiBearerAuth()
 @Controller('summary')
-@UseGuards(AuthMiddleware)
+@UseGuards(ClerkAuthGuard)
 export class SummaryController {
   constructor(private readonly summaryService: SummaryService) {}
 

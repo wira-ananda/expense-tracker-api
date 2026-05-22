@@ -19,7 +19,6 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ClerkSyncDto } from './dto/clerk-sync.dto';
 import { UpdateClerkProfileDto } from './dto/update-clerk-profile.dto';
-import { AuthMiddleware } from './auth.middleware';
 import { ClerkAuthGuard } from './guards/clerk-auth.guard';
 import { CurrentUser } from '../common/decorator/current-user.decorator';
 
@@ -69,7 +68,7 @@ export class AuthController {
   }
 
   @Get('me')
-  @UseGuards(AuthMiddleware)
+  @UseGuards(ClerkAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Ambil data user yang sedang login' })
   @ApiResponse({

@@ -20,17 +20,17 @@ import {
   ApiOkResponse,
 } from '@nestjs/swagger';
 import { TransactionsService } from './transactions.service';
-import { AuthMiddleware } from '../auth/auth.middleware';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { GetTransactionsByMonthDto } from './dto/get-transactions-by-month.dto';
 import { CurrentUser } from '../common/decorator/current-user.decorator';
 import type { User } from 'src/auth/interface/users.interface';
+import { ClerkAuthGuard } from 'src/auth/guards/clerk-auth.guard';
 
 @ApiTags('Transactions')
 @ApiBearerAuth()
 @Controller('transactions')
-@UseGuards(AuthMiddleware)
+@UseGuards(ClerkAuthGuard)
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 

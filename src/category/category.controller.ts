@@ -6,16 +6,16 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthMiddleware } from 'src/auth/auth.middleware';
 import { CurrentUser } from 'src/common/decorator/current-user.decorator';
 import type { User } from 'src/auth/interface/users.interface';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { ClerkAuthGuard } from 'src/auth/guards/clerk-auth.guard';
 
 @ApiTags('Categories')
 @ApiBearerAuth()
 @Controller('categories')
-@UseGuards(AuthMiddleware)
+@UseGuards(ClerkAuthGuard)
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
