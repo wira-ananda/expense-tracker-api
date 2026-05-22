@@ -24,7 +24,7 @@ function getAllowedOrigins() {
     .filter(Boolean);
 }
 
-server.use((req, res, next) => {
+function setCorsHeaders(req: VercelRequest, res: VercelResponse) {
   const origin = req.headers.origin;
   const allowedOrigins = getAllowedOrigins();
 
@@ -42,14 +42,7 @@ server.use((req, res, next) => {
     'Content-Type, Authorization',
   );
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-
-  if (req.method === 'OPTIONS') {
-    res.status(204).end();
-    return;
-  }
-
-  next();
-});
+}
 
 async function bootstrap() {
   if (isReady) return;
@@ -76,6 +69,14 @@ async function bootstrap() {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  setCorsHeaders(req, res);
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+
   await bootstrap();
+
   return server(req, res);
 }

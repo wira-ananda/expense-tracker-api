@@ -1,98 +1,286 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Expense Tracker API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend API untuk aplikasi Expense Tracker. API ini menangani autentikasi, sinkronisasi user Clerk, kategori transaksi, transaksi, dan ringkasan keuangan bulanan.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Project Overview
 
-## Description
+Expense Tracker API dibangun sebagai backend terpisah untuk dashboard Expense Tracker. API menerima request dari frontend dashboard, memvalidasi token Clerk, membaca user lokal dari database, lalu mengelola data transaksi berdasarkan user tersebut.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+API ini mendukung dua alur autentikasi:
 
-## Project setup
+1. Manual auth lama melalui register dan login.
+2. Clerk auth untuk login modern, termasuk Google login dan sinkronisasi user.
 
-```bash
-$ npm install
+Database production memakai PostgreSQL dari NeonDB. ORM memakai Prisma.
+
+## Tech Stack
+
+- NestJS
+- TypeScript
+- Prisma ORM
+- PostgreSQL
+- NeonDB
+- Clerk Backend SDK
+- JWT
+- Vercel Serverless Function
+- Express Adapter
+
+## Main Features
+
+- Register user manual.
+- Login user manual.
+- Sinkronisasi user Clerk ke database lokal.
+- Proteksi endpoint dengan token Clerk.
+- Ambil user lokal berdasarkan `clerkId`.
+- Buat kategori transaksi.
+- Ambil kategori user.
+- Buat transaksi pemasukan dan pengeluaran.
+- Ambil semua transaksi user.
+- Ambil riwayat transaksi berdasarkan bulan.
+- Ambil ringkasan income, expense, dan balance.
+- Deploy serverless ke Vercel.
+
+## Authentication Flow
+
+### Clerk Sync Flow
+
+1. User login dari dashboard menggunakan Clerk.
+2. Frontend mengambil token Clerk.
+3. Frontend mengirim request ke `POST /auth/clerk/sync`.
+4. API memverifikasi token Clerk.
+5. API membuat atau memperbarui user lokal berdasarkan `clerkId`.
+6. API membuat default category untuk user baru.
+7. Dashboard memakai user lokal untuk transaksi, kategori, dan summary.
+
+### Protected Route Flow
+
+Endpoint seperti `/categories`, `/transactions`, dan `/summary` memakai `ClerkUserGuard`.
+
+Flow:
+
+1. Request membawa `Authorization: Bearer <clerk_token>`.
+2. Guard memverifikasi token Clerk.
+3. Guard mencari user lokal berdasarkan `clerkId`.
+4. Guard menyimpan user lokal ke `req.user`.
+5. Controller mengambil user melalui `@CurrentUser()`.
+6. Service menjalankan query berdasarkan `user.id`.
+
+## API Endpoints
+
+### Auth
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| POST | `/auth/register` | Register user manual | Public |
+| POST | `/auth/login` | Login user manual | Public |
+| GET | `/auth/me` | Ambil user aktif | Clerk |
+| POST | `/auth/clerk/sync` | Sinkronisasi user Clerk | Clerk |
+| PATCH | `/auth/clerk/profile` | Update profil user Clerk | Clerk |
+
+### Categories
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | `/categories` | Ambil semua kategori user | Clerk user |
+| POST | `/categories` | Buat kategori baru | Clerk user |
+
+### Transactions
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | `/transactions` | Ambil semua transaksi user | Clerk user |
+| POST | `/transactions` | Buat transaksi baru | Clerk user |
+| GET | `/transactions/:id` | Ambil detail transaksi | Clerk user |
+| PATCH | `/transactions/:id` | Update transaksi | Clerk user |
+| DELETE | `/transactions/:id` | Hapus transaksi | Clerk user |
+| GET | `/transactions/history/by-month` | Ambil transaksi berdasarkan bulan | Clerk user |
+
+### Summary
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | `/summary` | Ambil total income, expense, dan balance | Clerk user |
+
+Query optional:
+
+```txt
+/summary?month=2026-05
 ```
 
-## Compile and run the project
+## Environment Variables
 
-```bash
-# development
-$ npm run start
+Buat file `.env` untuk local development.
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
+DIRECT_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
+JWT_SECRET="your_jwt_secret"
+CLERK_SECRET_KEY="sk_test_or_sk_live_xxx"
+CLERK_AUTHORIZED_PARTIES="http://localhost:3000,https://your-dashboard-domain.vercel.app"
+FRONTEND_URL="http://localhost:3000,https://your-dashboard-domain.vercel.app"
+PORT=5172
 ```
 
-## Run tests
+Notes:
 
-```bash
-# unit tests
-$ npm run test
+- `DATABASE_URL` dipakai oleh Prisma Client runtime.
+- `DIRECT_URL` dipakai untuk migration ke NeonDB.
+- Jangan commit file `.env`.
+- Jangan menaruh secret di README public.
 
-# e2e tests
-$ npm run test:e2e
+## Folder Structure
 
-# test coverage
-$ npm run test:cov
+```txt
+expense-tracker-api/
+├─ api/
+│  └─ index.ts
+├─ prisma/
+│  ├─ migrations/
+│  ├─ schema.prisma
+│  └─ seed.ts
+├─ src/
+│  ├─ common/
+│  │  └─ decorator/
+│  │     └─ current-user.decorator.ts
+│  ├─ constants/
+│  │  └─ default-categories.ts
+│  ├─ controller/
+│  │  ├─ auth.controller.ts
+│  │  ├─ category.controller.ts
+│  │  ├─ summary.controller.ts
+│  │  └─ transactions.controller.ts
+│  ├─ dto/
+│  │  ├─ auth/
+│  │  ├─ category/
+│  │  └─ transactions/
+│  ├─ guards/
+│  │  ├─ clerk-auth.guard.ts
+│  │  └─ clerk-user.guard.ts
+│  ├─ interface/
+│  │  ├─ transactions.interface.ts
+│  │  └─ users.interface.ts
+│  ├─ module/
+│  │  ├─ auth.module.ts
+│  │  ├─ category.module.ts
+│  │  ├─ prisma.module.ts
+│  │  ├─ summary.module.ts
+│  │  └─ transactions.module.ts
+│  ├─ service/
+│  │  ├─ auth.service.ts
+│  │  ├─ category.service.ts
+│  │  ├─ prisma.service.ts
+│  │  ├─ summary.service.ts
+│  │  └─ transactions.service.ts
+│  ├─ utils/
+│  │  └─ build.default-categories.ts
+│  ├─ app.module.ts
+│  └─ main.ts
+├─ package.json
+├─ prisma.config.ts
+└─ vercel.json
 ```
 
-## Deployment
+## Local Setup
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Install dependencies:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Generate Prisma Client:
 
-## Resources
+```bash
+npx prisma generate
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+Run migration local:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+npx prisma migrate dev
+```
 
-## Support
+Run development server:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+npm run dev
+```
 
-## Stay in touch
+Default local API:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```txt
+http://localhost:5172
+```
 
-## License
+## Production Build
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+npm run build
+```
+
+Production start for normal Node hosting:
+
+```bash
+npm run start:prod
+```
+
+For Vercel, the entrypoint is:
+
+```txt
+api/index.ts
+```
+
+## Vercel Deployment Notes
+
+API ini memakai Vercel Serverless Function melalui `api/index.ts`.
+
+Important notes:
+
+- CORS harus di-handle di `api/index.ts`.
+- `OPTIONS` preflight harus dijawab sebelum Nest bootstrap.
+- `prisma generate` harus berjalan saat build.
+- Environment variables wajib diisi di Vercel Project Settings.
+- Redeploy tanpa cache jika perubahan env atau build tidak terbaca.
+
+## Common Issues
+
+### 401 on `/auth/clerk/sync`
+
+Penyebab umum:
+
+- Token Clerk tidak terkirim.
+- `CLERK_SECRET_KEY` salah.
+- Publishable key frontend dan secret key backend berasal dari project Clerk yang berbeda.
+- `authorizedParties` terlalu ketat.
+
+### 500 on `/categories`, `/transactions`, or `/summary`
+
+Penyebab umum:
+
+- `req.user` belum diset oleh guard.
+- Endpoint protected masih memakai guard yang salah.
+- User Clerk belum tersinkronisasi ke database lokal.
+- Prisma Client belum generated di production.
+
+### CORS Failed to Fetch
+
+Penyebab umum:
+
+- `FRONTEND_URL` belum diisi di Vercel API.
+- Domain frontend tidak sama dengan origin browser.
+- Preflight `OPTIONS` tidak dijawab oleh API.
+
+## Recommended Commit Format
+
+Gunakan Conventional Commit.
+
+```bash
+feat(api): add Clerk user sync
+fix(api): resolve Clerk user for protected routes
+fix(api): handle Vercel CORS preflight
+chore(api): configure Vercel deployment
+```
+
+## Status
+
+API sudah dirancang untuk terhubung dengan dashboard Expense Tracker, Clerk Auth, NeonDB, dan Vercel.
