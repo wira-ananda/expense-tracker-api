@@ -1,6 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CategoryType } from '@prisma/client';
 import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+
+export const CATEGORY_TYPES = {
+  income: 'income',
+  expense: 'expense',
+} as const;
+
+export type CategoryTypeDto =
+  (typeof CATEGORY_TYPES)[keyof typeof CATEGORY_TYPES];
 
 export class CreateCategoryDto {
   @ApiProperty({
@@ -13,10 +20,10 @@ export class CreateCategoryDto {
   categoryname: string;
 
   @ApiProperty({
-    enum: CategoryType,
-    example: CategoryType.expense,
+    enum: CATEGORY_TYPES,
+    example: CATEGORY_TYPES.expense,
     description: 'Tipe kategori',
   })
-  @IsEnum(CategoryType)
-  type: CategoryType;
+  @IsEnum(CATEGORY_TYPES)
+  type: CategoryTypeDto;
 }

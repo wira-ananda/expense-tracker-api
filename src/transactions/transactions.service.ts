@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaClient, Transaction } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 
@@ -11,11 +11,13 @@ export class TransactionsService {
     const category = await prisma.category.findFirst({
       where: {
         id: data.categoryId,
-        userId: userId,
+        userId,
       },
     });
 
-    if (!category) throw new NotFoundException('Category not found');
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
 
     return prisma.transaction.create({
       data: {
@@ -25,8 +27,16 @@ export class TransactionsService {
         transactionDate: data.transactionDate
           ? new Date(data.transactionDate)
           : new Date(),
-        user: { connect: { id: userId } },
-        category: { connect: { id: data.categoryId } },
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+        category: {
+          connect: {
+            id: data.categoryId,
+          },
+        },
       },
       include: {
         category: true,
@@ -34,11 +44,17 @@ export class TransactionsService {
     });
   }
 
-  async getTransactions(userId: string): Promise<Transaction[]> {
+  async getTransactions(userId: string) {
     return prisma.transaction.findMany({
-      where: { userId },
-      include: { category: true },
-      orderBy: { transactionDate: 'desc' },
+      where: {
+        userId,
+      },
+      include: {
+        category: true,
+      },
+      orderBy: {
+        transactionDate: 'desc',
+      },
     });
   }
 
@@ -80,13 +96,20 @@ export class TransactionsService {
     };
   }
 
-  async getTransactionById(userId: string, id: string): Promise<Transaction> {
+  async getTransactionById(userId: string, id: string) {
     const transaction = await prisma.transaction.findFirst({
-      where: { id, userId },
-      include: { category: true },
+      where: {
+        id,
+        userId,
+      },
+      include: {
+        category: true,
+      },
     });
 
-    if (!transaction) throw new NotFoundException('Transaction not found');
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
 
     return transaction;
   }
@@ -95,12 +118,17 @@ export class TransactionsService {
     userId: string,
     id: string,
     data: UpdateTransactionDto,
-  ): Promise<Transaction> {
+  ) {
     const transaction = await prisma.transaction.findFirst({
-      where: { id, userId },
+      where: {
+        id,
+        userId,
+      },
     });
 
-    if (!transaction) throw new NotFoundException('Transaction not found');
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
 
     let nextType = transaction.type;
 
@@ -112,12 +140,17 @@ export class TransactionsService {
         },
       });
 
-      if (!category) throw new NotFoundException('Category not found');
+      if (!category) {
+        throw new NotFoundException('Category not found');
+      }
+
       nextType = category.type;
     }
 
     return prisma.transaction.update({
-      where: { id },
+      where: {
+        id,
+      },
       data: {
         ...data,
         type: nextType,
@@ -131,15 +164,22 @@ export class TransactionsService {
     });
   }
 
-  async deleteTransaction(userId: string, id: string): Promise<Transaction> {
+  async deleteTransaction(userId: string, id: string) {
     const transaction = await prisma.transaction.findFirst({
-      where: { id, userId },
+      where: {
+        id,
+        userId,
+      },
     });
 
-    if (!transaction) throw new NotFoundException('Transaction not found');
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
 
     return prisma.transaction.delete({
-      where: { id },
+      where: {
+        id,
+      },
     });
   }
 }
