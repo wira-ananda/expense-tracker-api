@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { verifyToken } from '@clerk/backend';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../service/prisma.service';
 
 @Injectable()
 export class ClerkUserGuard implements CanActivate {

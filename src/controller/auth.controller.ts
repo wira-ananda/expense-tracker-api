@@ -14,12 +14,12 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
-import { ClerkSyncDto } from './dto/clerk-sync.dto';
-import { UpdateClerkProfileDto } from './dto/update-clerk-profile.dto';
-import { ClerkAuthGuard } from './guards/clerk-auth.guard';
+import { AuthService } from '../service/auth.service';
+import { RegisterDto } from '../dto/auth/register.dto';
+import { LoginDto } from '../dto/auth/login.dto';
+import { ClerkSyncDto } from '../dto/auth/clerk-sync.dto';
+import { UpdateClerkProfileDto } from '../dto/auth/update-clerk-profile.dto';
+import { ClerkAuthGuard } from '../guards/clerk-auth.guard';
 import { CurrentUser } from '../common/decorator/current-user.decorator';
 
 @ApiTags('Auth')

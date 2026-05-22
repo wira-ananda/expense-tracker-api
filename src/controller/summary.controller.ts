@@ -6,11 +6,11 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { SummaryService } from './summary.service';
+import { SummaryService } from '../service/summary.service';
 import { CurrentUser } from '../common/decorator/current-user.decorator';
-import type { User } from 'src/auth/interface/users.interface';
-import { ClerkAuthGuard } from 'src/auth/guards/clerk-auth.guard';
-import { ClerkUserGuard } from 'src/auth/guards/clerk-user.guard';
+import type { User } from 'src/interface/users.interface';
+import { ClerkAuthGuard } from 'src/guards/clerk-auth.guard';
+import { ClerkUserGuard } from 'src/guards/clerk-user.guard';
 
 @ApiTags('Summary')
 @ApiBearerAuth()

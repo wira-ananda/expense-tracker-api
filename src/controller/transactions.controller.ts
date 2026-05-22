@@ -19,14 +19,14 @@ import {
   ApiQuery,
   ApiOkResponse,
 } from '@nestjs/swagger';
-import { TransactionsService } from './transactions.service';
-import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { UpdateTransactionDto } from './dto/update-transaction.dto';
-import { GetTransactionsByMonthDto } from './dto/get-transactions-by-month.dto';
-import { CurrentUser } from '../common/decorator/current-user.decorator';
-import type { User } from 'src/auth/interface/users.interface';
-import { ClerkAuthGuard } from 'src/auth/guards/clerk-auth.guard';
-import { ClerkUserGuard } from 'src/auth/guards/clerk-user.guard';
+import { TransactionsService } from '../service/transactions.service';
+import { UpdateTransactionDto } from 'src/dto/transactions/update-transaction.dto';
+import { GetTransactionsByMonthDto } from 'src/dto/transactions/get-transactions-by-month.dto';
+import { CurrentUser } from 'src/common/decorator/current-user.decorator';
+import type { User } from 'src/interface/users.interface';
+import { ClerkAuthGuard } from 'src/guards/clerk-auth.guard';
+import { ClerkUserGuard } from 'src/guards/clerk-user.guard';
+import { CreateTransactionDto } from 'src/dto/transactions/create-transaction.dto';
 
 @ApiTags('Transactions')
 @ApiBearerAuth()

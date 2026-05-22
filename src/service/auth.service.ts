@@ -9,8 +9,8 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-import { buildDefaultCategories } from './utils/build.default-categories';
-import { PrismaService } from '../prisma/prisma.service';
+import { buildDefaultCategories } from '../utils/build.default-categories';
+import { PrismaService } from './prisma.service';
 
 @Injectable()
 export class AuthService {

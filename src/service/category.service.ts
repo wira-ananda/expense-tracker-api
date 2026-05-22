@@ -5,8 +5,8 @@ import {
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from './prisma.service'; 
+import { CreateCategoryDto } from '../dto/category/create-category.dto';
 
 @Injectable()
 export class CategoryService {

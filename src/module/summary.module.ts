@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { SummaryController } from './summary.controller';
+import { SummaryController } from '../controller/summary.controller';
 import { ConfigModule } from '@nestjs/config';
-import { SummaryService } from './summary.service';
+import { SummaryService } from '../service/summary.service';
 
 @Module({
   imports: [ConfigModule],

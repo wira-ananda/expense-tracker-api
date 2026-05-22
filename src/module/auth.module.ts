@@ -1,12 +1,12 @@
 // auth.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from '../prisma/prisma.module';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { AuthMiddleware } from './auth.middleware';
-import { ClerkAuthGuard } from './guards/clerk-auth.guard';
-import { ClerkUserGuard } from './guards/clerk-user.guard';
+import { PrismaModule } from './prisma.module';
+import { AuthService } from '../service/auth.service';
+import { AuthController } from '../controller/auth.controller';
+import { AuthMiddleware } from '../middleware/auth.middleware';
+import { ClerkAuthGuard } from '../guards/clerk-auth.guard';
+import { ClerkUserGuard } from '../guards/clerk-user.guard';
 
 @Module({
   imports: [ConfigModule, PrismaModule],
