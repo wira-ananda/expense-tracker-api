@@ -10,6 +10,19 @@ const server = express();
 
 let isReady = false;
 
+function getAllowedOrigins() {
+  const frontendUrl = process.env.FRONTEND_URL || '';
+  const clerkAuthorizedParties = process.env.CLERK_AUTHORIZED_PARTIES || '';
+
+  return [
+    'http://localhost:3000',
+    ...frontendUrl.split(','),
+    ...clerkAuthorizedParties.split(','),
+  ]
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
 async function bootstrap() {
   if (isReady) return;
 
@@ -23,15 +36,20 @@ async function bootstrap() {
     }),
   );
 
-  const allowedOrigins = [
-   'https://expensetracker-system-dashboard.vercel.app/',
-    process.env.CLERK_AUTHORIZED_PARTIES,
-  ].filter(Boolean);
+  const allowedOrigins = getAllowedOrigins();
 
   app.enableCors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
   });
 
   await app.init();
