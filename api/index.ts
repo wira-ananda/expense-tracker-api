@@ -24,7 +24,7 @@ async function bootstrap() {
   );
 
   const allowedOrigins = [
-    'http://localhost:3000',
+   'https://expensetracker-system-dashboard.vercel.app/',
     process.env.CLERK_AUTHORIZED_PARTIES,
   ].filter(Boolean);
 
