@@ -8,9 +8,9 @@ import {
 } from '@nestjs/swagger';
 import { SummaryService } from '../service/summary.service';
 import { CurrentUser } from '../common/decorator/current-user.decorator';
-import type { User } from 'src/interface/users.interface';
-import { ClerkAuthGuard } from 'src/guards/clerk-auth.guard';
-import { ClerkUserGuard } from 'src/guards/clerk-user.guard';
+import type { User } from '../interface/users.interface';
+import { ClerkAuthGuard } from '../guards/clerk-auth.guard';
+import { ClerkUserGuard } from '../guards/clerk-user.guard';
 
 @ApiTags('Summary')
 @ApiBearerAuth()
