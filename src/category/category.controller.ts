@@ -11,11 +11,13 @@ import type { User } from 'src/auth/interface/users.interface';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { ClerkAuthGuard } from 'src/auth/guards/clerk-auth.guard';
+import { ClerkUserGuard } from 'src/auth/guards/clerk-user.guard';
 
 @ApiTags('Categories')
 @ApiBearerAuth()
 @Controller('categories')
 @UseGuards(ClerkAuthGuard)
+@UseGuards(ClerkUserGuard)
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
