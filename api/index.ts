@@ -16,12 +16,40 @@ function getAllowedOrigins() {
 
   return [
     'http://localhost:3000',
+    'https://expensetracker-system-dashboard.vercel.app',
     ...frontendUrl.split(','),
     ...clerkAuthorizedParties.split(','),
   ]
     .map((origin) => origin.trim())
     .filter(Boolean);
 }
+
+server.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = getAllowedOrigins();
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+
+  res.setHeader('Vary', 'Origin');
+  res.setHeader(
+    'Access-Control-Allow-Methods',
+    'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+  );
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization',
+  );
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+
+  next();
+});
 
 async function bootstrap() {
   if (isReady) return;
@@ -36,17 +64,8 @@ async function bootstrap() {
     }),
   );
 
-  const allowedOrigins = getAllowedOrigins();
-
   app.enableCors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error(`Origin ${origin} not allowed by CORS`));
-    },
+    origin: getAllowedOrigins(),
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
